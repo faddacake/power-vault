@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Vault — Kanban Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#f0f0f8;--muted:#8888aa;
+  --accent:#7c6ef0;--accent2:#a99cf5;
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;min-height:100vh}
+header{border-bottom:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,15,0.95);backdrop-filter:blur(12px);z-index:100;gap:16px;flex-wrap:wrap}
+.logo{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase}
+.logo span{color:var(--accent2)}
+.board-title-input{background:transparent;border:none;font-family:var(--display);font-size:15px;font-weight:700;color:var(--text);outline:none;border-bottom:1px solid var(--border2);padding:2px 6px;min-width:200px}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn-sm{font-family:var(--mono);font-size:11px;padding:6px 14px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;transition:all 0.15s}
+.btn-sm:hover{color:var(--accent2);border-color:rgba(124,110,240,0.35)}
+.btn-sm.primary{background:var(--accent);color:white;border-color:var(--accent)}
+.btn-sm.primary:hover{opacity:0.85}
+/* BOARD */
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:28px;min-height:calc(100vh - 70px);align-items:start}
+@media(max-width:900px){.board{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.board{grid-template-columns:1fr}}
+/* COLUMN */
+.col{border-radius:12px;background:var(--bg2);border:1px solid var(--border);padding:16px;min-height:200px;transition:border-color 0.15s}
+.col.drag-over{border-color:var(--accent);background:rgba(124,110,240,0.06)}
+.col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.col-title{font-family:var(--display);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em}
+.col-count{font-family:var(--mono);font-size:11px;background:var(--bg3);border:1px solid var(--border2);border-radius:99px;padding:2px 8px;color:var(--muted)}
+.col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+/* CARD */
+.card{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;margin-bottom:8px;cursor:grab;transition:border-color 0.15s,transform 0.1s;user-select:none;position:relative}
+.card:hover{border-color:rgba(255,255,255,0.22)}
+.card.dragging{opacity:0.5;transform:scale(0.97)}
+.card-text{font-size:14px;line-height:1.5;margin-bottom:8px;min-height:20px;outline:none}
+.card-text:empty::before{content:attr(data-placeholder);color:var(--muted);pointer-events:none}
+.card-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.card-tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:99px;cursor:pointer}
+.card-delete{margin-left:auto;font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;opacity:0;transition:opacity 0.15s;padding:2px 4px}
+.card:hover .card-delete{opacity:1}
+/* ADD CARD */
+.add-card{border:1px dashed var(--border2);border-radius:8px;padding:10px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer;transition:all 0.15s;margin-top:4px}
+.add-card:hover{border-color:var(--accent-border);color:var(--accent2)}
+/* TAGS */
+.tag-picker{display:flex;gap:6px;flex-wrap:wrap;padding:10px 0 4px}
+.tp{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:99px;cursor:pointer;border:1px solid transparent;transition:all 0.15s}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Power <span>Vault</span></div>
+  <input class="board-title-input" id="board-title" value="My Kanban Board" placeholder="Board name…">
+  <div class="header-actions">
+    <button class="btn-sm" onclick="clearDone()">Clear Cut</button>
+    <button class="btn-sm primary" onclick="exportBoard()">Export MD</button>
+  </div>
+</header>
+
+<div class="board" id="board"></div>
+
+<div id="export-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:24px;max-width:600px;width:90%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <span style="font-family:var(--display);font-weight:700;font-size:15px;">Exported Markdown</span>
+      <button onclick="document.getElementById('export-modal').style.display='none'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;">✕</button>
+    </div>
+    <textarea id="export-text" style="width:100%;height:280px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:#c8c8e8;font-family:var(--mono);font-size:12px;padding:12px;resize:none;" readonly></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn-sm primary" onclick="copyExport()">Copy</button>
+      <button class="btn-sm" onclick="document.getElementById('export-modal').style.display='none'">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TAGS = [
+  {label:'urgent', color:'#f87171', bg:'rgba(248,113,113,0.15)'},
+  {label:'in progress', color:'#fbbf24', bg:'rgba(251,191,36,0.15)'},
+  {label:'blocked', color:'#f472b6', bg:'rgba(244,114,182,0.15)'},
+  {label:'idea', color:'#60a5fa', bg:'rgba(96,165,250,0.15)'},
+  {label:'done', color:'#4ade80', bg:'rgba(74,222,128,0.15)'},
+];
+
+const COLS = [
+  {id:'now', title:'Now', color:'#7c6ef0', desc:'Active this sprint'},
+  {id:'next', title:'Next', color:'#4ade80', desc:'Up next in queue'},
+  {id:'later', title:'Later', color:'#fbbf24', desc:'Backlog / someday'},
+  {id:'cut', title:'Cut', color:'#f87171', desc:'Won't do / archived'},
+];
+
+let board = {
+  now: [{text:'Fill Memory/ files', tags:['urgent']},{text:'Review CLAUDE.md', tags:[]}],
+  next: [{text:'Set up daily ingest agent', tags:['idea']},{text:'Build project templates', tags:[]}],
+  later: [{text:'Explore Kronos trading model', tags:['idea']},{text:'Set up multi-agent team', tags:[]}],
+  cut: [],
+};
+
+let dragCard = null;
+let dragCol = null;
+let dragIdx = null;
+
+function render() {
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+  COLS.forEach(col => {
+    const cards = board[col.id] || [];
+    const colEl = document.createElement('div');
+    colEl.className = 'col';
+    colEl.dataset.col = col.id;
+    colEl.innerHTML = `
+      <div class="col-header">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="col-dot" style="background:${col.color}"></div>
+          <span class="col-title" style="color:${col.color}">${col.title}</span>
+        </div>
+        <span class="col-count">${cards.length}</span>
+      </div>
+    `;
+    cards.forEach((card, idx) => {
+      const cardEl = makeCard(card, col.id, idx);
+      colEl.appendChild(cardEl);
+    });
+    const add = document.createElement('div');
+    add.className = 'add-card';
+    add.textContent = '+ Add card';
+    add.onclick = () => addCard(col.id);
+    colEl.appendChild(add);
+    colEl.addEventListener('dragover', e => { e.preventDefault(); colEl.classList.add('drag-over'); });
+    colEl.addEventListener('dragleave', () => colEl.classList.remove('drag-over'));
+    colEl.addEventListener('drop', e => { e.preventDefault(); colEl.classList.remove('drag-over'); dropCard(col.id); });
+    boardEl.appendChild(colEl);
+  });
+}
+
+function makeCard(card, colId, idx) {
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.draggable = true;
+  const textEl = document.createElement('div');
+  textEl.className = 'card-text';
+  textEl.contentEditable = true;
+  textEl.setAttribute('data-placeholder', 'Task description…');
+  textEl.textContent = card.text;
+  textEl.oninput = () => { board[colId][idx].text = textEl.textContent; };
+  textEl.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();textEl.blur();} });
+  const footer = document.createElement('div');
+  footer.className = 'card-footer';
+  (card.tags||[]).forEach(tag => {
+    const t = TAGS.find(t=>t.label===tag);
+    if(t){
+      const span = document.createElement('span');
+      span.className = 'card-tag';
+      span.textContent = t.label;
+      span.style.background = t.bg;
+      span.style.color = t.color;
+      span.style.border = `1px solid ${t.color}44`;
+      span.onclick = () => { board[colId][idx].tags = (board[colId][idx].tags||[]).filter(x=>x!==tag); render(); };
+      footer.appendChild(span);
+    }
+  });
+  // tag picker
+  const addTag = document.createElement('span');
+  addTag.style.cssText = 'font-size:11px;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:99px;border:1px dashed var(--border2)';
+  addTag.textContent = '+tag';
+  addTag.onclick = (e) => { e.stopPropagation(); showTagPicker(el, colId, idx); };
+  footer.appendChild(addTag);
+  const del = document.createElement('button');
+  del.className = 'card-delete';
+  del.textContent = '✕';
+  del.title = 'Delete card';
+  del.onclick = () => { board[colId].splice(idx,1); render(); };
+  footer.appendChild(del);
+  el.appendChild(textEl);
+  el.appendChild(footer);
+  el.addEventListener('dragstart', () => { dragCard = card; dragCol = colId; dragIdx = idx; el.classList.add('dragging'); });
+  el.addEventListener('dragend', () => el.classList.remove('dragging'));
+  return el;
+}
+
+function showTagPicker(cardEl, colId, idx) {
+  const existing = cardEl.querySelector('.tag-picker');
+  if(existing){existing.remove();return;}
+  const picker = document.createElement('div');
+  picker.className = 'tag-picker';
+  TAGS.forEach(t => {
+    const btn = document.createElement('span');
+    btn.className = 'tp';
+    btn.textContent = t.label;
+    btn.style.background = t.bg;
+    btn.style.color = t.color;
+    btn.style.borderColor = t.color+'44';
+    btn.onclick = () => {
+      if(!(board[colId][idx].tags||[]).includes(t.label)){
+        board[colId][idx].tags = [...(board[colId][idx].tags||[]), t.label];
+      }
+      render();
+    };
+    picker.appendChild(btn);
+  });
+  cardEl.appendChild(picker);
+}
+
+function dropCard(targetCol) {
+  if(!dragCard) return;
+  board[dragCol].splice(dragIdx,1);
+  board[targetCol].push(dragCard);
+  dragCard = null; dragCol = null; dragIdx = null;
+  render();
+}
+
+function addCard(colId) {
+  board[colId].push({text:'', tags:[]});
+  render();
+  const cols = document.querySelectorAll('.col');
+  const colIdx = COLS.findIndex(c=>c.id===colId);
+  const cards = cols[colIdx].querySelectorAll('.card-text');
+  if(cards.length) cards[cards.length-1].focus();
+}
+
+function clearDone() {
+  board.cut = [];
+  render();
+}
+
+function exportBoard() {
+  const title = document.getElementById('board-title').value || 'Kanban Board';
+  let md = `# ${title}\n\n`;
+  COLS.forEach(col => {
+    md += `## ${col.title}\n`;
+    (board[col.id]||[]).forEach(c => {
+      const tags = (c.tags||[]).length ? ` \`${c.tags.join('` `')}\`` : '';
+      md += `- ${c.text}${tags}\n`;
+    });
+    md += '\n';
+  });
+  document.getElementById('export-text').value = md;
+  document.getElementById('export-modal').style.display = 'flex';
+}
+
+function copyExport() {
+  const text = document.getElementById('export-text').value;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(()=>btn.textContent='Copy', 2000);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

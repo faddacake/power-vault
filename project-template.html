@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Vault — New Project</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#f0f0f8;--muted:#8888aa;
+  --accent:#7c6ef0;--accent2:#a99cf5;--accent-bg:rgba(124,110,240,0.12);--accent-border:rgba(124,110,240,0.35);
+  --success:#4ade80;--success-bg:rgba(74,222,128,0.1);
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+header{border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,15,0.92);backdrop-filter:blur(12px);z-index:100}
+.logo{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase}
+.logo span{color:var(--accent2)}
+/* STEP NAV */
+.step-nav{display:flex;gap:4px}
+.step-dot{width:28px;height:4px;border-radius:99px;background:var(--bg3);transition:background 0.3s;cursor:pointer}
+.step-dot.active{background:var(--accent)}
+.step-dot.done{background:var(--success)}
+main{max-width:700px;margin:0 auto;padding:40px 24px 80px}
+.step-panel{display:none;animation:fadeIn 0.25s ease}
+.step-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.step-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent2);margin-bottom:6px}
+.step-title{font-family:var(--display);font-size:28px;font-weight:800;line-height:1.2;margin-bottom:8px}
+.step-desc{color:var(--muted);font-size:14px;margin-bottom:36px;line-height:1.7}
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;margin-top:24px}
+.section-label:first-of-type{margin-top:0}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+input[type=text],input[type=date],textarea,select{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:14px;padding:9px 13px;outline:none;transition:border 0.2s;resize:vertical}
+input:focus,textarea:focus{border-color:var(--accent);background:var(--bg3)}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:0.5}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* MILESTONE / RISK ROWS */
+.row-list{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.dyn-row{display:flex;gap:8px;align-items:flex-start}
+.dyn-row input{flex:1}
+.remove-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:9px 4px;line-height:1;transition:color 0.15s;flex-shrink:0}
+.remove-btn:hover{color:#f87171}
+.add-row-btn{font-size:13px;color:var(--accent2);background:none;border:1px dashed var(--accent-border);border-radius:6px;padding:7px 14px;cursor:pointer;width:100%;transition:all 0.15s;margin-bottom:4px}
+.add-row-btn:hover{background:var(--accent-bg)}
+/* STATUS TAGS */
+.tag-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.tag{font-size:12px;padding:4px 12px;border-radius:99px;border:1px solid var(--border2);cursor:pointer;user-select:none;color:var(--muted);background:var(--bg3);transition:all 0.15s;font-family:var(--mono)}
+.tag:hover{border-color:var(--accent-border);color:var(--accent2)}
+.tag.selected{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent2)}
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;margin-top:36px;flex-wrap:wrap;align-items:center}
+.btn-primary{background:var(--accent);color:white;border:none;border-radius:8px;padding:11px 26px;font-size:14px;font-family:var(--display);font-weight:700;letter-spacing:0.04em;cursor:pointer;text-transform:uppercase;transition:opacity 0.2s}
+.btn-primary:hover{opacity:0.88}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2);border-radius:8px;padding:11px 22px;font-size:14px;cursor:pointer;transition:all 0.15s}
+.btn-ghost:hover{color:var(--text);border-color:var(--accent-border)}
+.progress-note{font-family:var(--mono);font-size:11px;color:var(--muted)}
+/* OUTPUT */
+.output-block{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.output-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.output-filename{font-family:var(--mono);font-size:12px;color:var(--accent2)}
+.copy-btn{font-family:var(--mono);font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:5px;padding:4px 10px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;letter-spacing:0.06em}
+.copy-btn:hover{color:var(--accent2);border-color:var(--accent-border)}
+.copy-btn.copied{color:#4ade80;border-color:#4ade80}
+.output-code{font-family:var(--mono);font-size:12.5px;color:#c8c8e8;padding:16px;white-space:pre-wrap;word-break:break-word;max-height:400px;overflow-y:auto;line-height:1.7}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Power <span>Vault</span></div>
+  <div class="step-nav">
+    <div class="step-dot active" id="dot-0" onclick="goTo(0)"></div>
+    <div class="step-dot" id="dot-1" onclick="goTo(1)"></div>
+    <div class="step-dot" id="dot-2" onclick="goTo(2)"></div>
+    <div class="step-dot" id="dot-3" onclick="goTo(3)"></div>
+  </div>
+</header>
+<main>
+
+<!-- STEP 0: BASICS -->
+<div class="step-panel active" id="panel-0">
+  <div class="step-eyebrow">Step 1 of 3 — Basics</div>
+  <h1 class="step-title">What's the project?</h1>
+  <p class="step-desc">Name it, describe it, and lock the dates. Clarity here saves hours later.</p>
+
+  <div class="field"><label>Project name</label><input type="text" id="proj-name" placeholder="e.g. Power Vault v2 Launch"></div>
+  <div class="field"><label>One-line description</label><input type="text" id="proj-desc" placeholder="e.g. Ship updated vault with working web tools to Gumroad by end of month"></div>
+  <div class="field"><label>Why does this matter? (the real reason)</label><textarea id="proj-why" rows="2" placeholder="e.g. First major paid product. Proves the model. Funds next 3 months of work."></textarea></div>
+
+  <div class="field-row" style="margin-top:8px">
+    <div class="field"><label>Start date</label><input type="date" id="proj-start"></div>
+    <div class="field"><label>Target end date</label><input type="date" id="proj-end"></div>
+  </div>
+
+  <div class="section-label">Status</div>
+  <div class="tag-group" id="status-tags"></div>
+
+  <div class="section-label">Priority</div>
+  <div class="tag-group" id="priority-tags"></div>
+
+  <div class="btn-row">
+    <button class="btn-primary" onclick="goTo(1)">Next — Goals & scope →</button>
+    <span class="progress-note">1 / 3</span>
+  </div>
+</div>
+
+<!-- STEP 1: GOALS & SCOPE -->
+<div class="step-panel" id="panel-1">
+  <div class="step-eyebrow">Step 2 of 3 — Goals & scope</div>
+  <h1 class="step-title">What does done look like?</h1>
+  <p class="step-desc">Define success, milestones, and what's out of scope before you build.</p>
+
+  <div class="section-label">Success criteria — what does "done" look like?</div>
+  <div class="field"><textarea id="success" rows="3" placeholder="e.g. All 8 HTML tools working in browser&#10;Memory file setup app live on Netlify&#10;Gumroad listing updated with new delivery"></textarea></div>
+
+  <div class="section-label">Milestones</div>
+  <div class="row-list" id="milestone-list"></div>
+  <button class="add-row-btn" onclick="addMilestone()">+ Add milestone</button>
+
+  <div class="section-label" style="margin-top:20px">Out of scope (what this project will NOT do)</div>
+  <div class="field"><textarea id="out-of-scope" rows="2" placeholder="e.g. No mobile app, no Notion version, no custom domain yet"></textarea></div>
+
+  <div class="section-label">Dependencies / blockers</div>
+  <div class="field"><textarea id="deps" rows="2" placeholder="e.g. Needs Netlify account, needs all HTML tools completed first"></textarea></div>
+
+  <div class="btn-row">
+    <button class="btn-primary" onclick="goTo(2)">Next — Team & risks →</button>
+    <button class="btn-ghost" onclick="goTo(0)">← Back</button>
+  </div>
+</div>
+
+<!-- STEP 2: TEAM & RISKS -->
+<div class="step-panel" id="panel-2">
+  <div class="step-eyebrow">Step 3 of 3 — Team & risks</div>
+  <h1 class="step-title">Who's involved? What could go wrong?</h1>
+  <p class="step-desc">Assign ownership and surface risks before they surface themselves.</p>
+
+  <div class="section-label">Team / roles</div>
+  <div class="row-list" id="team-list"></div>
+  <button class="add-row-btn" onclick="addTeamMember()">+ Add team member / role</button>
+
+  <div class="section-label" style="margin-top:20px">Risks</div>
+  <div class="row-list" id="risk-list"></div>
+  <button class="add-row-btn" onclick="addRisk()">+ Add risk</button>
+
+  <div class="section-label" style="margin-top:20px">Notes / context</div>
+  <div class="field"><textarea id="proj-notes" rows="3" placeholder="Anything else the team or your AI needs to know about this project…"></textarea></div>
+
+  <div class="section-label">Claude prompt for this project</div>
+  <div class="field"><textarea id="claude-prompt" rows="2" placeholder="e.g. You are helping me ship Power Vault v2. Read CLAUDE.md and all Memory files. Priority is completing all 8 HTML tools. Output as interactive HTML."></textarea></div>
+
+  <div class="btn-row">
+    <button class="btn-primary" onclick="generateProject()">Generate project file →</button>
+    <button class="btn-ghost" onclick="goTo(1)">← Back</button>
+  </div>
+</div>
+
+<!-- STEP 3: OUTPUT -->
+<div class="step-panel" id="panel-3">
+  <div class="step-eyebrow">Done</div>
+  <h1 class="step-title">Project file ready.</h1>
+  <p class="step-desc">Copy this into a new note inside your <code style="font-family:var(--mono);font-size:13px;color:var(--accent2)">01-Projects/</code> folder in Obsidian.</p>
+
+  <div class="output-block">
+    <div class="output-header">
+      <span class="output-filename" id="out-filename">project.md</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyOut()">Copy</button>
+    </div>
+    <div class="output-code" id="output-code"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-ghost" onclick="goTo(0)">← Start new project</button>
+  </div>
+</div>
+
+</main>
+<script>
+let current = 0;
+function goTo(n) {
+  document.getElementById('panel-'+current).classList.remove('active');
+  document.getElementById('dot-'+current).classList.remove('active');
+  if(current<n) document.getElementById('dot-'+current).classList.add('done');
+  current=n;
+  document.getElementById('panel-'+current).classList.add('active');
+  document.getElementById('dot-'+current).classList.remove('done');
+  document.getElementById('dot-'+current).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Set today
+document.getElementById('proj-start').value = new Date().toISOString().split('T')[0];
+
+// STATUS TAGS
+const statusOpts = ['Planning','In Progress','On Hold','Review','Done'];
+const priorityOpts = ['P0 — Critical','P1 — High','P2 — Medium','P3 — Low'];
+let selStatus = 'In Progress', selPriority = 'P1 — High';
+function renderSel(containerId, opts, selVar, setter) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  opts.forEach(o => {
+    const tag = document.createElement('span');
+    tag.className = 'tag'+(window[selVar]===o?' selected':'');
+    tag.textContent = o;
+    tag.onclick = () => { window[selVar]=o; renderSel(containerId,opts,selVar,setter); };
+    el.appendChild(tag);
+  });
+}
+// Use closure approach instead
+let statusSel = 'In Progress', prioritySel = 'P1 — High';
+function renderTags(id, opts, getVal, setVal) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  opts.forEach(o => {
+    const tag = document.createElement('span');
+    tag.className = 'tag'+(getVal()===o?' selected':'');
+    tag.textContent = o;
+    tag.onclick = () => { setVal(o); renderTags(id,opts,getVal,setVal); };
+    el.appendChild(tag);
+  });
+}
+renderTags('status-tags', statusOpts, ()=>statusSel, v=>{statusSel=v});
+renderTags('priority-tags', priorityOpts, ()=>prioritySel, v=>{prioritySel=v});
+
+// DYNAMIC ROWS
+let msCount=0, tmCount=0, rkCount=0;
+function addMilestone() {
+  msCount++;
+  const list = document.getElementById('milestone-list');
+  const row = document.createElement('div');
+  row.className = 'dyn-row'; row.id='ms-'+msCount;
+  row.innerHTML = `<input type="text" placeholder="Milestone description…" class="ms-text"><input type="date" style="max-width:140px" class="ms-date"><button class="remove-btn" onclick="document.getElementById('ms-${msCount}').remove()">✕</button>`;
+  list.appendChild(row);
+}
+function addTeamMember() {
+  tmCount++;
+  const list = document.getElementById('team-list');
+  const row = document.createElement('div');
+  row.className = 'dyn-row'; row.id='tm-'+tmCount;
+  row.innerHTML = `<input type="text" placeholder="Name or agent…" class="tm-name"><input type="text" placeholder="Role / responsibility" class="tm-role"><button class="remove-btn" onclick="document.getElementById('tm-${tmCount}').remove()">✕</button>`;
+  list.appendChild(row);
+}
+function addRisk() {
+  rkCount++;
+  const list = document.getElementById('risk-list');
+  const row = document.createElement('div');
+  row.className = 'dyn-row'; row.id='rk-'+rkCount;
+  row.innerHTML = `<input type="text" placeholder="Risk description…" class="rk-text"><input type="text" placeholder="Mitigation" class="rk-mit" style="max-width:220px"><button class="remove-btn" onclick="document.getElementById('rk-${rkCount}').remove()">✕</button>`;
+  list.appendChild(row);
+}
+addMilestone(); addTeamMember(); addRisk();
+
+function getMilestones() {
+  return [...document.querySelectorAll('.dyn-row .ms-text')].map((el,i)=>({text:el.value.trim(),date:document.querySelectorAll('.ms-date')[i]?.value})).filter(m=>m.text);
+}
+function getTeam() {
+  return [...document.querySelectorAll('.tm-name')].map((el,i)=>({name:el.value.trim(),role:document.querySelectorAll('.tm-role')[i]?.value.trim()})).filter(m=>m.name);
+}
+function getRisks() {
+  return [...document.querySelectorAll('.rk-text')].map((el,i)=>({text:el.value.trim(),mit:document.querySelectorAll('.rk-mit')[i]?.value.trim()})).filter(r=>r.text);
+}
+
+function generateProject() {
+  const v = id => document.getElementById(id).value.trim();
+  const name = v('proj-name')||'Untitled Project';
+  const slug = name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  document.getElementById('out-filename').textContent = `01-Projects/${slug}.md`;
+
+  const milestones = getMilestones().map(m=>`- [ ] ${m.text}${m.date?' — '+m.date:''}`).join('\n')||'- (none set)';
+  const team = getTeam().map(t=>`- **${t.name}**: ${t.role||'(no role)'}`).join('\n')||'- (solo)';
+  const risks = getRisks().map(r=>`- **Risk**: ${r.text}${r.mit?'\n  **Mitigation**: '+r.mit:''}`).join('\n')||'- (none identified)';
+  const oos = v('out-of-scope')||'(not defined)';
+  const deps = v('deps')||'(none)';
+  const claudePrompt = v('claude-prompt');
+
+  const md = `# ${name}
+
+**Status**: ${statusSel}  
+**Priority**: ${prioritySel}  
+**Start**: ${v('proj-start')||'TBD'}  
+**Target**: ${v('proj-end')||'TBD'}  
+
+## What is this?
+${v('proj-desc')||'(not set)'}
+
+## Why it matters
+${v('proj-why')||'(not set)'}
+
+## Success criteria
+${v('success')||'(not set)'}
+
+## Milestones
+${milestones}
+
+## Out of scope
+${oos}
+
+## Dependencies / blockers
+${deps}
+
+## Team
+${team}
+
+## Risks
+${risks}
+
+## Notes
+${v('proj-notes')||'(none)'}
+
+${claudePrompt?`## Claude prompt\n\`\`\`\n${claudePrompt}\n\`\`\`\n`:''}
+---
+*Created with Power Vault — ${new Date().toLocaleDateString()}*`;
+
+  document.getElementById('output-code').textContent = md;
+  goTo(3);
+}
+
+function copyOut() {
+  navigator.clipboard.writeText(document.getElementById('output-code').textContent).then(()=>{
+    const btn=document.getElementById('copy-btn');
+    btn.textContent='Copied!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);
+  });
+}
+</script>
+</body>
+</html>

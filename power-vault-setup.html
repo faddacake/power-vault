@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Vault — Memory File Setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f8;
+    --muted: #8888aa;
+    --accent: #7c6ef0;
+    --accent2: #a99cf5;
+    --accent-bg: rgba(124,110,240,0.12);
+    --accent-border: rgba(124,110,240,0.35);
+    --success: #4ade80;
+    --success-bg: rgba(74,222,128,0.1);
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .logo span { color: var(--accent2); }
+
+  .step-nav {
+    display: flex;
+    gap: 4px;
+  }
+
+  .step-dot {
+    width: 28px;
+    height: 4px;
+    border-radius: 99px;
+    background: var(--bg3);
+    transition: background 0.3s;
+    cursor: pointer;
+  }
+
+  .step-dot.active { background: var(--accent); }
+  .step-dot.done { background: var(--success); }
+
+  /* LAYOUT */
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  /* STEP PANELS */
+  .step-panel { display: none; animation: fadeIn 0.3s ease; }
+  .step-panel.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* HEADINGS */
+  .step-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+
+  .step-title {
+    font-family: var(--display);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .step-desc {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 40px;
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    margin-top: 32px;
+  }
+
+  .section-label:first-of-type { margin-top: 0; }
+
+  /* INPUTS */
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border 0.2s;
+    resize: vertical;
+  }
+
+  input[type="text"]:focus, textarea:focus {
+    border-color: var(--accent);
+    background: var(--bg3);
+  }
+
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.6; }
+
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* TAGS */
+  .tag-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .tag {
+    font-size: 13px;
+    padding: 5px 14px;
+    border-radius: 99px;
+    border: 1px solid var(--border2);
+    cursor: pointer;
+    user-select: none;
+    color: var(--muted);
+    background: var(--bg2);
+    transition: all 0.15s;
+    font-family: var(--sans);
+  }
+
+  .tag:hover { border-color: var(--accent-border); color: var(--accent2); }
+
+  .tag.selected {
+    background: var(--accent-bg);
+    border-color: var(--accent-border);
+    color: var(--accent2);
+    font-weight: 500;
+  }
+
+  /* TOGGLE ROW (banned patterns) */
+  .toggle-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  .toggle-item span { font-size: 14px; color: var(--text); }
+
+  .toggle {
+    width: 40px;
+    height: 22px;
+    border-radius: 99px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--muted);
+    top: 2px;
+    left: 2px;
+    transition: all 0.2s;
+  }
+
+  .toggle.on { background: var(--accent-bg); border-color: var(--accent-border); }
+  .toggle.on::after { background: var(--accent2); left: 20px; }
+
+  /* BUTTONS */
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-family: var(--display);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    text-transform: uppercase;
+  }
+
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:active { transform: scale(0.98); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-family: var(--sans);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-ghost:hover { color: var(--text); border-color: var(--accent-border); }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 40px;
+    align-items: center;
+  }
+
+  /* OUTPUT */
+  .output-block {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  .output-filename {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent2);
+  }
+
+  .copy-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .copy-btn:hover { color: var(--accent2); border-color: var(--accent-border); }
+  .copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+  .output-code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #c8c8e8;
+    padding: 16px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  /* PROGRESS */
+  .progress-note {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* DONE SCREEN */
+  .done-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--success-bg);
+    border: 1px solid rgba(74,222,128,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+
+  .file-checklist { margin-top: 24px; }
+  .file-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .file-row .check { color: var(--success); font-size: 16px; }
+  .file-row .fname { font-family: var(--mono); font-size: 13px; color: var(--accent2); }
+  .file-row .fdesc { font-size: 13px; color: var(--muted); margin-left: auto; }
+
+  .instruction-block {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-top: 32px;
+  }
+
+  .instruction-block h3 {
+    font-family: var(--display);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .instruction-block ol {
+    padding-left: 20px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 2;
+  }
+
+  .instruction-block ol li strong { color: var(--text); }
+
+  /* DIVIDER */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 32px 0;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 99px; }
+
+  @media (max-width: 600px) {
+    .field-row { grid-template-columns: 1fr; }
+    .step-title { font-size: 24px; }
+    header { padding: 16px 20px; }
+    main { padding: 32px 16px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Power <span>Vault</span></div>
+  <div class="step-nav">
+    <div class="step-dot active" id="dot-0" onclick="goTo(0)"></div>
+    <div class="step-dot" id="dot-1" onclick="goTo(1)"></div>
+    <div class="step-dot" id="dot-2" onclick="goTo(2)"></div>
+    <div class="step-dot" id="dot-3" onclick="goTo(3)"></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- STEP 0: ABOUT ME -->
+  <div class="step-panel active" id="panel-0">
+    <div class="step-eyebrow">Step 1 of 3</div>
+    <h1 class="step-title">Who are you?</h1>
+    <p class="step-desc">This file tells your AI exactly who it's working with — your identity, how you think, what you value, and where you're going.</p>
+
+    <div class="section-label">Identity</div>
+    <div class="field-row">
+      <div class="field"><label>Full name</label><input type="text" id="name" placeholder="Alex Johnson"></div>
+      <div class="field"><label>Location</label><input type="text" id="location" placeholder="Charlotte, NC"></div>
+    </div>
+
+    <div class="section-label">Role & title</div>
+    <div class="field-row">
+      <div class="field"><label>Current role / title</label><input type="text" id="role" placeholder="Founder, Head of Growth…"></div>
+      <div class="field"><label>Company / project</label><input type="text" id="company" placeholder="Power Vault, Acme Inc…"></div>
+    </div>
+    <div class="field"><label>Industry / niche</label><input type="text" id="industry" placeholder="AI tools, crypto trading, content creation…"></div>
+
+    <div class="section-label">Bio</div>
+    <div class="field">
+      <label>Short bio — who you are, what you do, what you're building</label>
+      <textarea id="bio" rows="3" placeholder="e.g. Solo founder building AI productivity tools. Former marketer, now obsessed with systems and shipping fast."></textarea>
+    </div>
+
+    <div class="section-label">Thinking style — click all that apply</div>
+    <div class="tag-group" id="traits"></div>
+
+    <div class="section-label" style="margin-top:24px;">Decision-making — pick one</div>
+    <div class="tag-group" id="decisions"></div>
+
+    <div class="section-label" style="margin-top:24px;">Core values — pick up to 5</div>
+    <div class="tag-group" id="values"></div>
+
+    <div class="section-label" style="margin-top:24px;">Goals & constraints</div>
+    <div class="field"><label>Long-term goals (one per line)</label><textarea id="goals" rows="3" placeholder="Build a profitable solo business&#10;Achieve financial independence&#10;Ship a product used by 10k people"></textarea></div>
+    <div class="field"><label>What you hate (pet peeves, deal-breakers)</label><textarea id="hates" rows="2" placeholder="Vague feedback, slow iteration, unnecessary meetings"></textarea></div>
+    <div class="field"><label>Communication style</label><input type="text" id="comms" placeholder="Direct, no fluff. Bullet points. Candid feedback welcome."></div>
+    <div class="field"><label>Weaknesses / blind spots (helps AI compensate)</label><textarea id="weaknesses" rows="2" placeholder="Tend to over-engineer, perfectionism slows shipping"></textarea></div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="nextStep(0)">Next — Writing style →</button>
+      <span class="progress-note">1 / 3</span>
+    </div>
+  </div>
+
+  <!-- STEP 1: ANTI-AI STYLE -->
+  <div class="step-panel" id="panel-1">
+    <div class="step-eyebrow">Step 2 of 3</div>
+    <h1 class="step-title">How should your AI sound?</h1>
+    <p class="step-desc">Ban the patterns you hate. Set the tone rules. This file stops your AI from sounding like a corporate chatbot.</p>
+
+    <div class="section-label">Banned patterns — toggle everything that annoys you</div>
+    <div id="banned-list"></div>
+
+    <div class="section-label" style="margin-top:8px;">Add your own banned phrase</div>
+    <div class="field"><input type="text" id="custom-ban" placeholder='e.g. "It\'s worth noting that…"' onkeydown="if(event.key==='Enter'){addCustomBan();}"></div>
+    <button class="btn-ghost" onclick="addCustomBan()" style="margin-bottom:8px; padding: 8px 16px; font-size:13px;">+ Add phrase</button>
+    <div id="custom-bans" style="margin-top:8px;"></div>
+
+    <hr>
+
+    <div class="section-label">Tone rules — click all that apply</div>
+    <div class="tag-group" id="tone-tags"></div>
+
+    <div class="section-label" style="margin-top:24px;">Formality level</div>
+    <div class="tag-group" id="formality-tags"></div>
+
+    <div class="section-label" style="margin-top:24px;">Output format preference</div>
+    <div class="tag-group" id="format-tags"></div>
+
+    <div class="section-label" style="margin-top:24px;">Anything else? (extra style rules in plain English)</div>
+    <div class="field"><textarea id="extra-style" rows="3" placeholder="e.g. Never start a sentence with 'Certainly'. Don't use numbered lists for simple answers. Skip the summary at the end."></textarea></div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="nextStep(1)">Next — Your business →</button>
+      <button class="btn-ghost" onclick="goTo(0)">← Back</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: MY BUSINESS -->
+  <div class="step-panel" id="panel-2">
+    <div class="step-eyebrow">Step 3 of 3</div>
+    <h1 class="step-title">What's the business?</h1>
+    <p class="step-desc">Your AI needs context on what you're building, who it's for, and what's off-limits — so every output moves the needle.</p>
+
+    <div class="section-label">Core context</div>
+    <div class="field"><label>Mission (one sentence — what you do and for whom)</label><input type="text" id="mission" placeholder="e.g. Help solo founders build AI-powered productivity systems"></div>
+    <div class="field"><label>Target audience</label><input type="text" id="audience" placeholder="e.g. Solo founders, indie hackers, knowledge workers"></div>
+    <div class="field"><label>Current offers / products</label><textarea id="offers" rows="2" placeholder="e.g. Power Vault (Obsidian vault, $47), 1:1 setup calls ($200/hr)"></textarea></div>
+
+    <div class="section-label" style="margin-top:8px;">Goals & metrics</div>
+    <div class="field-row">
+      <div class="field"><label>Primary goal right now</label><input type="text" id="primary-goal" placeholder="e.g. Hit $5k MRR by Q3"></div>
+      <div class="field"><label>Key metric you track</label><input type="text" id="metric" placeholder="e.g. Revenue, subscribers, units sold"></div>
+    </div>
+    <div class="field"><label>Current traction / context</label><input type="text" id="traction" placeholder="e.g. 120 customers, just launched v2, pre-revenue"></div>
+
+    <div class="section-label" style="margin-top:8px;">Hard NOs</div>
+    <div class="field"><label>Things your AI should never suggest or do (one per line)</label><textarea id="hard-nos" rows="3" placeholder="e.g. Don't suggest paid ads&#10;No VC funding — bootstrapped only&#10;Never recommend hiring before $10k MRR"></textarea></div>
+
+    <div class="section-label" style="margin-top:8px;">Extra context</div>
+    <div class="field"><label>Competitors / alternatives to be aware of</label><input type="text" id="competitors" placeholder="e.g. Notion AI, Mem.ai, standard Obsidian vaults"></div>
+    <div class="field"><label>Anything else Claude should always know about your business</label><textarea id="biz-extra" rows="2" placeholder="e.g. We're a one-person operation. Speed over perfection. Ship first, refine later."></textarea></div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="generateAll()">Generate my memory files →</button>
+      <button class="btn-ghost" onclick="goTo(1)">← Back</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: OUTPUT -->
+  <div class="step-panel" id="panel-3">
+    <div class="step-eyebrow">Done</div>
+    <h1 class="step-title">Your memory files are ready.</h1>
+    <p class="step-desc">Copy each file below and paste the contents into the matching file in your Power Vault's <code style="font-family:var(--mono); font-size:13px; color:var(--accent2);">Memory/</code> folder.</p>
+
+    <div class="file-checklist">
+      <div class="file-row"><span class="check">✓</span><span class="fname">Memory/about-me.md</span><span class="fdesc">Identity + thinking style</span></div>
+      <div class="file-row"><span class="check">✓</span><span class="fname">Memory/anti-ai-style.md</span><span class="fdesc">Tone + banned patterns</span></div>
+      <div class="file-row"><span class="check">✓</span><span class="fname">Memory/my-business.md</span><span class="fdesc">Business context</span></div>
+    </div>
+
+    <hr>
+
+    <div class="output-block">
+      <div class="output-header">
+        <span class="output-filename">Memory/about-me.md</span>
+        <button class="copy-btn" onclick="copyFile('out-about', this)">Copy</button>
+      </div>
+      <div class="output-code" id="out-about"></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-header">
+        <span class="output-filename">Memory/anti-ai-style.md</span>
+        <button class="copy-btn" onclick="copyFile('out-style', this)">Copy</button>
+      </div>
+      <div class="output-code" id="out-style"></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-header">
+        <span class="output-filename">Memory/my-business.md</span>
+        <button class="copy-btn" onclick="copyFile('out-biz', this)">Copy</button>
+      </div>
+      <div class="output-code" id="out-biz"></div>
+    </div>
+
+    <div class="instruction-block">
+      <h3>How to use these files</h3>
+      <ol>
+        <li>Open your Power Vault in <strong>Obsidian</strong></li>
+        <li>Navigate to the <strong>Memory/</strong> folder</li>
+        <li>Open each file and <strong>replace all contents</strong> with what you copied above</li>
+        <li>Save each file (<strong>Ctrl/Cmd + S</strong>)</li>
+        <li>Start a new Claude session and paste:<br><code style="font-family:var(--mono); font-size:12px; color:var(--accent2); background:var(--bg3); padding:2px 6px; border-radius:4px;">You are operating inside Power Vault. Follow CLAUDE.md. Read all Memory files. Task: [your request].</code></li>
+      </ol>
+    </div>
+
+    <div class="btn-row" style="margin-top:24px;">
+      <button class="btn-ghost" onclick="goTo(0)">← Start over</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ---- DATA ----
+const traitList = ["Analytical","Systems thinker","Creative","Detail-oriented","Big-picture","Fast mover","Deliberate","Intuitive","Data-driven","Contrarian","Builder","Optimizer","Visionary","Executor","Introvert","Extrovert","Deep focus","Generalist","Specialist","Risk-taker"];
+const decisionList = ["Research first, then decide","Go with gut, refine later","Talk it out with others","Write it out to think","Decide fast, correct as needed","Weigh pros/cons methodically"];
+const valueList = ["Ownership","Speed","Quality","Honesty","Simplicity","Independence","Impact","Wealth","Freedom","Creativity","Integrity","Growth","Family","Health","Learning","Craft","Leverage","Consistency"];
+const toneList = ["Direct","Concise","Conversational","Sharp","Blunt","No hedging","Use contractions","Sound human","Skip disclaimers","No corporate speak","Skip the preamble","End with action, not questions"];
+const formalityList = ["Casual / like a friend","Professional but not stuffy","Formal when needed","Always informal"];
+const formatList = ["Bullet points over paragraphs","Prose over bullets","Short answers by default","Long thorough answers","Code blocks for anything technical","Tables for comparisons","HTML over Markdown"];
+
+const bannedDefaults = [
+  "As an AI language model…",
+  "Certainly! Here's…",
+  "Great question!",
+  "It's important to note that…",
+  "I hope this helps!",
+  "Feel free to let me know…",
+  "It's worth noting that…",
+  "In conclusion,",
+  "To summarize,",
+  "Absolutely!",
+  "Of course!",
+  "I understand your concern…",
+];
+
+const sel = {
+  traits: new Set(), decisions: new Set(), values: new Set(),
+  banned: new Set(bannedDefaults),
+  tone: new Set(), formality: new Set(), format: new Set()
+};
+const customBans = [];
+
+// ---- RENDER TAGS ----
+function renderTags(containerId, items, key, limit) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  items.forEach(item => {
+    const tag = document.createElement('span');
+    tag.className = 'tag' + (sel[key].has(item) ? ' selected' : '');
+    tag.textContent = item;
+    tag.onclick = () => {
+      if (sel[key].has(item)) {
+        sel[key].delete(item);
+        tag.classList.remove('selected');
+      } else {
+        if (limit && sel[key].size >= limit) return;
+        sel[key].add(item);
+        tag.classList.add('selected');
+      }
+    };
+    el.appendChild(tag);
+  });
+}
+
+function renderBanned() {
+  const el = document.getElementById('banned-list');
+  el.innerHTML = '';
+  bannedDefaults.forEach(phrase => {
+    const row = document.createElement('div');
+    row.className = 'toggle-item';
+    const span = document.createElement('span');
+    span.textContent = '"' + phrase + '"';
+    const tog = document.createElement('div');
+    tog.className = 'toggle' + (sel.banned.has(phrase) ? ' on' : '');
+    tog.onclick = () => {
+      if (sel.banned.has(phrase)) { sel.banned.delete(phrase); tog.classList.remove('on'); }
+      else { sel.banned.add(phrase); tog.classList.add('on'); }
+    };
+    row.appendChild(span);
+    row.appendChild(tog);
+    el.appendChild(row);
+  });
+}
+
+function addCustomBan() {
+  const input = document.getElementById('custom-ban');
+  const val = input.value.trim();
+  if (!val) return;
+  customBans.push(val);
+  sel.banned.add(val);
+  input.value = '';
+  const container = document.getElementById('custom-bans');
+  const tag = document.createElement('span');
+  tag.className = 'tag selected';
+  tag.textContent = val;
+  tag.onclick = () => {
+    const idx = customBans.indexOf(val);
+    if (idx > -1) customBans.splice(idx, 1);
+    sel.banned.delete(val);
+    tag.remove();
+  };
+  container.appendChild(tag);
+}
+
+// ---- STEP NAV ----
+let current = 0;
+
+function goTo(n) {
+  document.getElementById('panel-' + current).classList.remove('active');
+  document.getElementById('dot-' + current).classList.remove('active');
+  if (current < n) document.getElementById('dot-' + current).classList.add('done');
+  current = n;
+  document.getElementById('panel-' + current).classList.add('active');
+  document.getElementById('dot-' + current).classList.remove('done');
+  document.getElementById('dot-' + current).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextStep(from) {
+  goTo(from + 1);
+}
+
+// ---- GENERATE ----
+function generateAll() {
+  const v = id => document.getElementById(id).value.trim();
+  const lines = (id) => v(id).split('\n').filter(Boolean).map(l => '- ' + l).join('\n') || '- (not set)';
+
+  // about-me
+  const aboutMe = `# Memory/about-me.md
+
+## Identity
+**Name**: ${v('name') || '(not set)'}
+**Location**: ${v('location') || '(not set)'}
+
+## Role & title
+**Role**: ${v('role') || '(not set)'}
+**Company / project**: ${v('company') || '(not set)'}
+**Industry**: ${v('industry') || '(not set)'}
+
+## Bio
+${v('bio') || '(not set)'}
+
+## Thinking style
+**Top traits**: ${sel.traits.size ? [...sel.traits].join(', ') : '(not set)'}
+**Decision-making**: ${sel.decisions.size ? [...sel.decisions].join('') : '(not set)'}
+
+**Weaknesses / blind spots**:
+${lines('weaknesses')}
+
+## Core values
+${sel.values.size ? [...sel.values].map(v => '- ' + v).join('\n') : '- (not set)'}
+
+## Long-term goals
+${lines('goals')}
+
+## Constraints & preferences
+**What I hate**:
+${lines('hates')}
+
+**Communication style**: ${v('comms') || '(not set)'}`;
+
+  // anti-ai-style
+  const bannedList = [...sel.banned].map(b => '- "' + b + '"').join('\n') || '- (none set)';
+  const antiStyle = `# Memory/anti-ai-style.md
+
+## Banned phrases & patterns
+${bannedList}
+
+## Tone rules
+${sel.tone.size ? [...sel.tone].map(t => '- ' + t).join('\n') : '- (not set)'}
+
+## Formality
+${sel.formality.size ? [...sel.formality].join('') : '(not set)'}
+
+## Output format preferences
+${sel.format.size ? [...sel.format].map(f => '- ' + f).join('\n') : '- (not set)'}
+
+## Additional style rules
+${v('extra-style') || '(none)'}`;
+
+  // my-business
+  const myBiz = `# Memory/my-business.md
+
+## Core context
+**Mission**: ${v('mission') || '(not set)'}
+**Target audience**: ${v('audience') || '(not set)'}
+
+**Current offers**:
+${lines('offers')}
+
+## Goals & metrics
+**Primary goal**: ${v('primary-goal') || '(not set)'}
+**Key metric**: ${v('metric') || '(not set)'}
+**Current traction**: ${v('traction') || '(not set)'}
+
+## Hard NOs
+${lines('hard-nos')}
+
+## Competitive landscape
+**Competitors / alternatives**: ${v('competitors') || '(not set)'}
+
+## Extra context
+${v('biz-extra') || '(none)'}`;
+
+  document.getElementById('out-about').textContent = aboutMe;
+  document.getElementById('out-style').textContent = antiStyle;
+  document.getElementById('out-biz').textContent = myBiz;
+
+  goTo(3);
+}
+
+// ---- COPY ----
+function copyFile(id, btn) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ---- INIT ----
+renderTags('traits', traitList, 'traits', null);
+renderTags('decisions', decisionList, 'decisions', 1);
+renderTags('values', valueList, 'values', 5);
+renderBanned();
+renderTags('tone-tags', toneList, 'tone', null);
+renderTags('formality-tags', formalityList, 'formality', 1);
+renderTags('format-tags', formatList, 'format', null);
+</script>
+</body>
+</html>

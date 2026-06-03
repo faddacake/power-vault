@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Vault — Idea Capture</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#f0f0f8;--muted:#8888aa;
+  --accent:#7c6ef0;--accent2:#a99cf5;--accent-bg:rgba(124,110,240,0.12);--accent-border:rgba(124,110,240,0.35);
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+header{border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,15,0.92);backdrop-filter:blur(12px);z-index:100}
+.logo{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase}
+.logo span{color:var(--accent2)}
+main{max-width:700px;margin:0 auto;padding:40px 24px 80px}
+h1{font-family:var(--display);font-size:30px;font-weight:800;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:36px}
+/* CAPTURE BOX */
+.capture-box{background:var(--bg2);border:1px solid var(--accent-border);border-radius:12px;padding:24px;margin-bottom:32px}
+.big-input{width:100%;background:transparent;border:none;color:var(--text);font-family:var(--display);font-size:20px;font-weight:700;outline:none;resize:none;line-height:1.4;margin-bottom:16px}
+.big-input::placeholder{color:var(--muted);opacity:0.5}
+textarea.detail{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:14px;padding:10px 13px;outline:none;resize:vertical;transition:border 0.2s;margin-bottom:14px}
+textarea.detail:focus{border-color:var(--accent)}
+textarea.detail::placeholder{color:var(--muted);opacity:0.5}
+/* CATEGORY TAGS */
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.tag-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.tag{font-size:12px;padding:4px 12px;border-radius:99px;border:1px solid var(--border2);cursor:pointer;user-select:none;color:var(--muted);background:var(--bg3);transition:all 0.15s;font-family:var(--mono)}
+.tag:hover{border-color:var(--accent-border);color:var(--accent2)}
+.tag.selected{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent2)}
+/* ENERGY / EFFORT */
+.slider-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.slider-row label{font-size:13px;color:var(--muted);min-width:100px}
+input[type=range]{flex:1;accent-color:var(--accent)}
+.slider-val{font-family:var(--mono);font-size:12px;color:var(--accent2);min-width:30px;text-align:right}
+/* VAULT PATH */
+.path-row{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.path-row select{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:13px;padding:8px 12px;outline:none}
+/* BUTTONS */
+.btn-primary{background:var(--accent);color:white;border:none;border-radius:8px;padding:11px 26px;font-size:14px;font-family:var(--display);font-weight:700;letter-spacing:0.04em;cursor:pointer;text-transform:uppercase;transition:opacity 0.2s}
+.btn-primary:hover{opacity:0.88}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2);border-radius:8px;padding:11px 22px;font-size:14px;cursor:pointer;transition:all 0.15s}
+.btn-ghost:hover{color:var(--text);border-color:var(--accent-border)}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+/* IDEAS LIST */
+.ideas-section{margin-top:40px}
+.ideas-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ideas-header h2{font-family:var(--display);font-size:18px;font-weight:700}
+.idea-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:10px;transition:border-color 0.15s}
+.idea-card:hover{border-color:var(--border2)}
+.idea-card-title{font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:4px}
+.idea-card-detail{font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.idea-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.idea-cat{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:99px;background:var(--accent-bg);border:1px solid var(--accent-border);color:var(--accent2)}
+.idea-energy{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.idea-folder{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.idea-date{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:auto}
+.idea-delete{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 4px;transition:color 0.15s}
+.idea-delete:hover{color:#f87171}
+.empty-state{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+/* OUTPUT */
+.output-wrap{display:none;margin-top:24px}
+.output-block{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden}
+.output-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.output-filename{font-family:var(--mono);font-size:12px;color:var(--accent2)}
+.copy-btn{font-family:var(--mono);font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:5px;padding:4px 10px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;letter-spacing:0.06em}
+.copy-btn:hover{color:var(--accent2);border-color:var(--accent-border)}
+.copy-btn.copied{color:#4ade80;border-color:#4ade80}
+.output-code{font-family:var(--mono);font-size:12.5px;color:#c8c8e8;padding:16px;white-space:pre-wrap;word-break:break-word;max-height:360px;overflow-y:auto;line-height:1.7}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Power <span>Vault</span></div>
+  <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">Idea Capture</span>
+</header>
+<main>
+  <h1>Capture an idea.</h1>
+  <p class="subtitle">Log it fast. Sort it later. Your 00-Inbox is waiting.</p>
+
+  <div class="capture-box">
+    <textarea class="big-input" id="idea-title" rows="2" placeholder="The idea in one sentence…"></textarea>
+    <textarea class="detail" id="idea-detail" rows="3" placeholder="Context, why it matters, first steps, connections…"></textarea>
+
+    <div class="section-label">Category</div>
+    <div class="tag-group" id="category-tags"></div>
+
+    <div class="section-label">Excitement level</div>
+    <div class="slider-row">
+      <label style="font-size:12px">🔥 Energy</label>
+      <input type="range" id="energy" min="1" max="5" value="3" oninput="document.getElementById('energy-val').textContent=this.value">
+      <span class="slider-val" id="energy-val">3</span>
+    </div>
+    <div class="slider-row">
+      <label style="font-size:12px">⚡ Effort</label>
+      <input type="range" id="effort" min="1" max="5" value="3" oninput="document.getElementById('effort-val').textContent=this.value">
+      <span class="slider-val" id="effort-val">3</span>
+    </div>
+
+    <div class="section-label">Save to vault folder</div>
+    <div class="path-row">
+      <select id="vault-folder">
+        <option value="00-Inbox">00-Inbox (process later)</option>
+        <option value="01-Projects">01-Projects (start now)</option>
+        <option value="02-Areas">02-Areas (ongoing)</option>
+        <option value="03-Resources">03-Resources (reference)</option>
+      </select>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="captureIdea()">Capture idea →</button>
+      <button class="btn-ghost" onclick="exportAll()">Export all →</button>
+    </div>
+  </div>
+
+  <div class="ideas-section">
+    <div class="ideas-header">
+      <h2>Captured ideas <span id="idea-count" style="font-family:var(--mono);font-size:13px;color:var(--muted);font-weight:400"></span></h2>
+      <button class="btn-ghost" style="padding:6px 14px;font-size:12px;" onclick="clearAll()">Clear all</button>
+    </div>
+    <div id="ideas-list"></div>
+  </div>
+
+  <div class="output-wrap" id="output-wrap">
+    <div class="output-block">
+      <div class="output-header">
+        <span class="output-filename">ideas-export.md</span>
+        <button class="copy-btn" id="copy-btn" onclick="copyOut()">Copy</button>
+      </div>
+      <div class="output-code" id="output-code"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+const CATS = [
+  {label:'product', color:'#7c6ef0'},
+  {label:'content', color:'#4ade80'},
+  {label:'business', color:'#fbbf24'},
+  {label:'tech', color:'#60a5fa'},
+  {label:'trading', color:'#f472b6'},
+  {label:'personal', color:'#f87171'},
+  {label:'research', color:'#34d399'},
+  {label:'wild card', color:'#a99cf5'},
+];
+let selectedCat = null;
+const ideas = [];
+
+function renderCats() {
+  const el = document.getElementById('category-tags');
+  el.innerHTML = '';
+  CATS.forEach(c => {
+    const tag = document.createElement('span');
+    tag.className = 'tag' + (selectedCat===c.label?' selected':'');
+    tag.textContent = c.label;
+    if(selectedCat===c.label){tag.style.background=c.color+'22';tag.style.color=c.color;tag.style.borderColor=c.color+'55';}
+    tag.onclick = () => { selectedCat = selectedCat===c.label ? null : c.label; renderCats(); };
+    el.appendChild(tag);
+  });
+}
+renderCats();
+
+function captureIdea() {
+  const title = document.getElementById('idea-title').value.trim();
+  if(!title) return;
+  const idea = {
+    id: Date.now(),
+    title,
+    detail: document.getElementById('idea-detail').value.trim(),
+    category: selectedCat || 'uncategorized',
+    energy: document.getElementById('energy').value,
+    effort: document.getElementById('effort').value,
+    folder: document.getElementById('vault-folder').value,
+    date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+  };
+  ideas.unshift(idea);
+  // reset
+  document.getElementById('idea-title').value = '';
+  document.getElementById('idea-detail').value = '';
+  document.getElementById('energy').value = 3; document.getElementById('energy-val').textContent = 3;
+  document.getElementById('effort').value = 3; document.getElementById('effort-val').textContent = 3;
+  selectedCat = null; renderCats();
+  renderIdeas();
+}
+
+function renderIdeas() {
+  const el = document.getElementById('ideas-list');
+  document.getElementById('idea-count').textContent = ideas.length ? `(${ideas.length})` : '';
+  if(!ideas.length){el.innerHTML='<div class="empty-state">No ideas captured yet. Add your first one above.</div>';return;}
+  el.innerHTML = '';
+  ideas.forEach((idea, i) => {
+    const cat = CATS.find(c=>c.label===idea.category);
+    const card = document.createElement('div');
+    card.className = 'idea-card';
+    card.innerHTML = `
+      <div class="idea-card-title">${idea.title}</div>
+      ${idea.detail?`<div class="idea-card-detail">${idea.detail}</div>`:''}
+      <div class="idea-card-meta">
+        <span class="idea-cat" style="${cat?`background:${cat.color}22;color:${cat.color};border-color:${cat.color}44`:''}">${idea.category}</span>
+        <span class="idea-energy">🔥${idea.energy} ⚡${idea.effort}</span>
+        <span class="idea-folder">${idea.folder}</span>
+        <span class="idea-date">${idea.date}</span>
+        <button class="idea-delete" onclick="deleteIdea(${i})">✕</button>
+      </div>
+    `;
+    el.appendChild(card);
+  });
+}
+
+function deleteIdea(i) { ideas.splice(i,1); renderIdeas(); }
+function clearAll() { if(confirm('Clear all ideas?')){ideas.length=0;renderIdeas();} }
+
+function exportAll() {
+  if(!ideas.length) return;
+  let md = `# Idea Capture — Power Vault\n*Exported ${new Date().toLocaleDateString()}*\n\n`;
+  const grouped = {};
+  ideas.forEach(i => { if(!grouped[i.folder]) grouped[i.folder]=[]; grouped[i.folder].push(i); });
+  Object.entries(grouped).forEach(([folder, items]) => {
+    md += `## ${folder}\n\n`;
+    items.forEach(i => {
+      md += `### ${i.title}\n`;
+      if(i.detail) md += `${i.detail}\n\n`;
+      md += `- **Category**: ${i.category}\n- **Energy**: ${i.energy}/5\n- **Effort**: ${i.effort}/5\n- **Captured**: ${i.date}\n\n`;
+    });
+  });
+  document.getElementById('output-code').textContent = md;
+  document.getElementById('output-wrap').style.display = 'block';
+  document.getElementById('output-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+function copyOut() {
+  navigator.clipboard.writeText(document.getElementById('output-code').textContent).then(()=>{
+    const btn = document.getElementById('copy-btn');
+    btn.textContent='Copied!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);
+  });
+}
+
+renderIdeas();
+</script>
+</body>
+</html>

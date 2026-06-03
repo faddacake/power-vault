@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Vault — Daily Ingest Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#f0f0f8;--muted:#8888aa;
+  --accent:#7c6ef0;--accent2:#a99cf5;--accent-bg:rgba(124,110,240,0.12);--accent-border:rgba(124,110,240,0.35);
+  --success:#4ade80;--success-bg:rgba(74,222,128,0.1);--success-border:rgba(74,222,128,0.3);
+  --warn:#fbbf24;--warn-bg:rgba(251,191,36,0.1);
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+header{border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(10,10,15,0.92);backdrop-filter:blur(12px);z-index:100}
+.logo{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase}
+.logo span{color:var(--accent2)}
+main{max-width:720px;margin:0 auto;padding:40px 24px 80px}
+h1{font-family:var(--display);font-size:28px;font-weight:800;margin-bottom:8px}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:40px;line-height:1.7;max-width:580px}
+/* SECTION */
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;margin-top:36px}
+.section-label:first-of-type{margin-top:0}
+h2{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:6px}
+/* SOURCE CARDS */
+.source-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:8px}
+.source-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:14px 16px;cursor:pointer;user-select:none;transition:border-color 0.15s}
+.source-card:hover{border-color:var(--border2)}
+.source-card.selected{border-color:var(--accent-border);background:var(--accent-bg)}
+.source-icon{font-size:20px;margin-bottom:6px}
+.source-name{font-size:13px;font-weight:500}
+.source-desc{font-size:11px;color:var(--muted);margin-top:2px}
+/* FIELDS */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+input[type=text],textarea,select{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:14px;padding:9px 13px;outline:none;transition:border 0.2s;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);background:var(--bg3)}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:0.5}
+/* SCHEDULE */
+.schedule-row{display:flex;gap:10px;flex-wrap:wrap}
+.sched-opt{padding:7px 16px;border-radius:99px;border:1px solid var(--border2);cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--muted);background:var(--bg2);transition:all 0.15s;user-select:none}
+.sched-opt:hover{border-color:var(--accent-border);color:var(--accent2)}
+.sched-opt.selected{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent2)}
+/* INFO CARDS */
+.info-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:16px 18px;margin-bottom:10px}
+.info-card h3{font-size:14px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.info-card p{font-size:13px;color:var(--muted);line-height:1.6}
+.badge{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:99px}
+.badge.green{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border)}
+.badge.warn{background:var(--warn-bg);color:var(--warn);border:1px solid rgba(251,191,36,0.3)}
+/* BUTTONS */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:36px}
+.btn-primary{background:var(--accent);color:white;border:none;border-radius:8px;padding:11px 26px;font-size:14px;font-family:var(--display);font-weight:700;letter-spacing:0.04em;cursor:pointer;text-transform:uppercase;transition:opacity 0.2s}
+.btn-primary:hover{opacity:0.88}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2);border-radius:8px;padding:11px 22px;font-size:14px;cursor:pointer;transition:all 0.15s}
+.btn-ghost:hover{color:var(--text);border-color:var(--accent-border)}
+/* OUTPUT */
+.output-wrap{display:none;margin-top:32px}
+.output-block{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:12px}
+.output-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.output-filename{font-family:var(--mono);font-size:12px;color:var(--accent2)}
+.copy-btn{font-family:var(--mono);font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--border2);border-radius:5px;padding:4px 10px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;letter-spacing:0.06em}
+.copy-btn:hover{color:var(--accent2);border-color:var(--accent-border)}
+.copy-btn.copied{color:#4ade80;border-color:#4ade80}
+.output-code{font-family:var(--mono);font-size:12.5px;color:#c8c8e8;padding:16px;white-space:pre-wrap;word-break:break-word;max-height:400px;overflow-y:auto;line-height:1.7}
+hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Power <span>Vault</span></div>
+  <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">Daily Ingest Agent</span>
+</header>
+<main>
+  <h1>Your 24/7 second brain.</h1>
+  <p class="subtitle">Configure a browser-use agent that pulls content from across the web while you sleep — and drops structured notes straight into your 00-Inbox.</p>
+
+  <!-- SETUP OPTIONS -->
+  <div class="section-label">Choose your setup method</div>
+  <div class="info-card">
+    <h3>🖥️ browser-use (local) <span class="badge green">Free / open source</span></h3>
+    <p>Runs on your machine. Requires Python. Best for privacy and full control. Install once, runs nightly via cron or Task Scheduler.</p>
+  </div>
+  <div class="info-card">
+    <h3>☁️ Hosted agent (cloud) <span class="badge warn">Paid / easier</span></h3>
+    <p>Use a service like Lindy, Zapier, or Make.com. No local setup. Runs in the cloud on a schedule. Good if you don't want to manage Python.</p>
+  </div>
+
+  <hr>
+
+  <div class="section-label">Configure your ingest sources</div>
+  <h2>What should it pull?</h2>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Select your sources:</p>
+  <div class="source-grid" id="source-grid"></div>
+
+  <div class="field" style="margin-top:16px">
+    <label>X/Twitter accounts or search terms to monitor (one per line)</label>
+    <textarea id="x-sources" rows="3" placeholder="e.g. @naval&#10;@paulg&#10;AI tools&#10;Obsidian vault tips"></textarea>
+  </div>
+  <div class="field">
+    <label>YouTube channels to monitor (one per line)</label>
+    <textarea id="yt-sources" rows="2" placeholder="e.g. Andrej Karpathy&#10;Y Combinator"></textarea>
+  </div>
+  <div class="field">
+    <label>Websites / newsletters / RSS feeds (one per line)</label>
+    <textarea id="web-sources" rows="2" placeholder="e.g. https://paulgraham.com/articles.html&#10;https://www.lesswrong.com"></textarea>
+  </div>
+
+  <div class="section-label" style="margin-top:8px">Schedule</div>
+  <div class="schedule-row" id="schedule-row"></div>
+
+  <div class="field" style="margin-top:16px">
+    <label>Time to run (24h format)</label>
+    <input type="text" id="run-time" value="02:00" placeholder="e.g. 02:00 (2am)">
+  </div>
+
+  <div class="section-label">Output format</div>
+  <div class="field">
+    <label>Note format per captured item</label>
+    <select id="note-format">
+      <option value="summary">Summary + key points + link</option>
+      <option value="full">Full transcript / content + summary</option>
+      <option value="headline">Headline + one-line summary + link only</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Vault inbox path</label>
+    <input type="text" id="inbox-path" value="00-Inbox" placeholder="e.g. 00-Inbox or /path/to/vault/00-Inbox">
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-primary" onclick="generateConfig()">Generate agent config →</button>
+  </div>
+
+  <div class="output-wrap" id="output-wrap">
+    <h2 style="font-family:var(--display);font-size:18px;font-weight:700;margin-bottom:4px;margin-top:0">Your agent config</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Save these to your Agents/ folder in Obsidian.</p>
+
+    <div class="output-block">
+      <div class="output-header">
+        <span class="output-filename">Agents/daily-ingest-config.md</span>
+        <button class="copy-btn" id="copy-config" onclick="copyBlock('output-config',this)">Copy</button>
+      </div>
+      <div class="output-code" id="output-config"></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-header">
+        <span class="output-filename">Agents/daily-ingest-prompt.md</span>
+        <button class="copy-btn" id="copy-prompt" onclick="copyBlock('output-prompt',this)">Copy</button>
+      </div>
+      <div class="output-code" id="output-prompt"></div>
+    </div>
+
+    <div class="info-card" style="margin-top:16px;border-color:rgba(124,110,240,0.3)">
+      <h3>🚀 Quick setup with browser-use</h3>
+      <p style="margin-top:8px">Run these commands in your terminal:<br><br>
+      <code style="font-family:var(--mono);font-size:12px;background:var(--bg3);padding:8px 12px;border-radius:6px;display:block;margin:6px 0">pip install browser-use</code>
+      <code style="font-family:var(--mono);font-size:12px;background:var(--bg3);padding:8px 12px;border-radius:6px;display:block;margin:6px 0">python -m browser_use --task "$(cat Agents/daily-ingest-prompt.md)"</code>
+      Then set up a cron job or Task Scheduler to run it nightly at your chosen time.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+const SOURCES = [
+  {emoji:'🐦',name:'X / Twitter',id:'x'},
+  {emoji:'▶️',name:'YouTube',id:'yt'},
+  {emoji:'🌐',name:'Websites',id:'web'},
+  {emoji:'🔖',name:'Bookmarks',id:'bookmarks'},
+  {emoji:'📧',name:'Email digest',id:'email'},
+  {emoji:'📰',name:'Hacker News',id:'hn'},
+];
+const selectedSources = new Set(['x','yt','web']);
+const scheduleOpts = ['Daily','Weekdays only','Weekends only','Every 12h'];
+let selectedSchedule = 'Daily';
+
+function renderSources() {
+  const el = document.getElementById('source-grid');
+  el.innerHTML = '';
+  SOURCES.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'source-card'+(selectedSources.has(s.id)?' selected':'');
+    card.innerHTML = `<div class="source-icon">${s.emoji}</div><div class="source-name">${s.name}</div>`;
+    card.onclick = () => {
+      selectedSources.has(s.id)?selectedSources.delete(s.id):selectedSources.add(s.id);
+      renderSources();
+    };
+    el.appendChild(card);
+  });
+}
+
+function renderSchedule() {
+  const el = document.getElementById('schedule-row');
+  el.innerHTML = '';
+  scheduleOpts.forEach(o => {
+    const opt = document.createElement('span');
+    opt.className = 'sched-opt'+(selectedSchedule===o?' selected':'');
+    opt.textContent = o;
+    opt.onclick = () => { selectedSchedule=o; renderSchedule(); };
+    el.appendChild(opt);
+  });
+}
+
+function generateConfig() {
+  const xSrc = document.getElementById('x-sources').value.trim().split('\n').filter(Boolean);
+  const ytSrc = document.getElementById('yt-sources').value.trim().split('\n').filter(Boolean);
+  const webSrc = document.getElementById('web-sources').value.trim().split('\n').filter(Boolean);
+  const time = document.getElementById('run-time').value.trim() || '02:00';
+  const format = document.getElementById('note-format').value;
+  const inbox = document.getElementById('inbox-path').value.trim() || '00-Inbox';
+  const srcList = [...selectedSources].map(s=>SOURCES.find(x=>x.id===s)?.name).filter(Boolean);
+
+  const config = `# Daily Ingest Agent Config
+*Generated by Power Vault*
+
+## Schedule
+- **Frequency**: ${selectedSchedule}
+- **Run time**: ${time}
+
+## Sources
+**Active sources**: ${srcList.join(', ')||'(none selected)'}
+
+### X / Twitter
+${xSrc.length?xSrc.map(s=>'- '+s).join('\n'):'- (none configured)'}
+
+### YouTube
+${ytSrc.length?ytSrc.map(s=>'- '+s).join('\n'):'- (none configured)'}
+
+### Websites / RSS
+${webSrc.length?webSrc.map(s=>'- '+s).join('\n'):'- (none configured)'}
+
+## Output settings
+- **Note format**: ${format}
+- **Vault inbox**: ${inbox}
+- **File naming**: YYYY-MM-DD-[source]-[title-slug].md`;
+
+  const formatInstructions = {
+    summary: 'For each item: write a 3-5 sentence summary, extract 3-5 key points as bullets, and include the source link.',
+    full: 'For each item: include the full transcript or content, then write a 3-5 sentence summary and 3-5 key bullet points.',
+    headline: 'For each item: write just the headline/title and one sentence summary, plus the source link.',
+  };
+
+  const prompt = `# Daily Ingest Agent Prompt
+*Use this as the task for your browser-use agent*
+
+You are a knowledge curation agent for a Power Vault Obsidian system.
+
+## Your job
+Every time you run, you will:
+1. Visit each source below
+2. Collect the most interesting/valuable content from the last 24 hours
+3. Write structured notes in Markdown format
+4. Save each note to the vault inbox at: ${inbox}/
+
+## Sources to check
+${xSrc.length?'### X / Twitter\n'+xSrc.map(s=>'- '+s).join('\n')+'\n':''}${ytSrc.length?'### YouTube\n'+ytSrc.map(s=>'- '+s).join('\n')+'\n':''}${webSrc.length?'### Websites\n'+webSrc.map(s=>'- '+s).join('\n')+'\n':''}${selectedSources.has('hn')?'### Hacker News\n- Top 10 posts from news.ycombinator.com\n':''}
+
+## Note format
+${formatInstructions[format]}
+
+## File naming
+Save each note as: YYYY-MM-DD-[source]-[slug].md
+Example: 2026-06-02-twitter-karpathy-obsidian-vault.md
+
+## Note template
+\`\`\`
+# [Title]
+
+**Source**: [URL]  
+**Date**: [Date]  
+**Type**: [Tweet / Video / Article / Thread]  
+
+## Summary
+[3-5 sentence summary]
+
+## Key points
+- [point 1]
+- [point 2]
+- [point 3]
+
+## Tags
+#inbox #[source-type] #[topic]
+\`\`\`
+
+## Rules
+- Only include content with genuine signal value. Skip noise, reposts, and low-effort content.
+- If a piece of content doesn't teach something or spark an idea, skip it.
+- Aim for 5-15 notes per run. Quality over quantity.
+- Always include the source URL.`;
+
+  document.getElementById('output-config').textContent = config;
+  document.getElementById('output-prompt').textContent = prompt;
+  document.getElementById('output-wrap').style.display = 'block';
+  document.getElementById('output-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+function copyBlock(id, btn) {
+  navigator.clipboard.writeText(document.getElementById(id).textContent).then(()=>{
+    btn.textContent='Copied!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);
+  });
+}
+
+renderSources();
+renderSchedule();
+</script>
+</body>
+</html>

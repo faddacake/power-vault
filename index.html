@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Vault — Tool Suite</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#f0f0f8;--muted:#8888aa;
+  --accent:#7c6ef0;--accent2:#a99cf5;--accent-bg:rgba(124,110,240,0.12);--accent-border:rgba(124,110,240,0.35);
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+header{border-bottom:1px solid var(--border);padding:22px 40px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--display);font-size:18px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase}
+.logo span{color:var(--accent2)}
+.tagline{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.06em}
+main{max-width:900px;margin:0 auto;padding:60px 24px 80px}
+.hero{margin-bottom:56px;text-align:center}
+.hero h1{font-family:var(--display);font-size:48px;font-weight:800;line-height:1.1;margin-bottom:12px;letter-spacing:-0.02em}
+.hero h1 span{color:var(--accent2)}
+.hero p{color:var(--muted);font-size:16px;max-width:500px;margin:0 auto;line-height:1.7}
+/* CATEGORY */
+.category{margin-bottom:40px}
+.cat-label{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 22px;text-decoration:none;color:var(--text);transition:border-color 0.2s,background 0.2s;display:flex;flex-direction:column;gap:10px}
+.tool-card:hover{border-color:var(--accent-border);background:var(--accent-bg)}
+.tool-card-top{display:flex;align-items:flex-start;gap:12px}
+.tool-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:var(--bg3)}
+.tool-name{font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:2px}
+.tool-desc{font-size:13px;color:var(--muted);line-height:1.5}
+.tool-tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:99px;background:var(--accent-bg);border:1px solid var(--accent-border);color:var(--accent2);align-self:flex-start}
+/* FOOTER NOTE */
+.footer-note{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-top:40px}
+.footer-note h3{font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:8px}
+.footer-note p{font-size:13px;color:var(--muted);line-height:1.7}
+.footer-note code{font-family:var(--mono);font-size:12px;background:var(--bg3);padding:2px 6px;border-radius:4px;color:var(--accent2)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Power <span>Vault</span></div>
+  <div class="tagline">AI INTELLIGENCE SYSTEM — 2026</div>
+</header>
+<main>
+  <div class="hero">
+    <h1>Your vault.<br><span>Fully operational.</span></h1>
+    <p>Every tool you need to set up and run Power Vault — no Obsidian JavaScript required.</p>
+  </div>
+
+  <div class="category">
+    <div class="cat-label">Setup — do these first</div>
+    <div class="tool-grid">
+      <a href="power-vault-setup.html" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon">🧠</div>
+          <div>
+            <div class="tool-name">Memory File Setup</div>
+            <div class="tool-desc">Fill out about-me, anti-ai-style, and my-business. Generate all 3 files in one flow.</div>
+          </div>
+        </div>
+        <span class="tool-tag">START HERE</span>
+      </a>
+      <a href="dashboard.html" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon">📊</div>
+          <div>
+            <div class="tool-name">Dashboard</div>
+            <div class="tool-desc">Daily checklist, vault folder map, and power prompts for starting Claude sessions.</div>
+          </div>
+        </div>
+        <span class="tool-tag">DAILY DRIVER</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="category">
+    <div class="cat-label">Templates — use every day</div>
+    <div class="tool-grid">
+      <a href="kanban.html" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon">📋</div>
+          <div>
+            <div class="tool-name">Kanban Board</div>
+            <div class="tool-desc">Draggable Now / Next / Later / Cut board. Tag cards, export to Markdown.</div>
+          </div>
+        </div>
+      </a>
+      <a href="meeting-note.html" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon">🗓️</div>
+          <div>
+            <div class="tool-name">Meeting Notes</div>
+            <div class="tool-desc">Structured capture: attendees, agenda, decisions, action items. Export to Obsidian.</div>
+          </div>
+        </div>
+      </a>
+      <a href="idea-capture.html" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon">💡</div>
+          <div>
+            <div class="tool-name">Idea Capture</div>
+            <div class="tool-desc">Log ideas fast with category tags, energy/effort ratings, and vault folder assignment.</div>
+          </div>
+        </div>
+      </a>
+      <a href="project-template.html" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon">🚀</div>
+          <div>
+            <div class="tool-name">New Project</div>
+            <div class="tool-desc">3-step wizard: name, goals, milestones, team, risks. Generates a full project brief.</div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="category">
+    <div class="cat-label">Agents — advanced workflows</div>
+    <div class="tool-grid">
+      <a href="multi-agent-teams.html" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon">🤖</div>
+          <div>
+            <div class="tool-name">Multi-Agent Teams</div>
+            <div class="tool-desc">Build a specialist AI team (CEO, PM, Designer, QA). Generates the full Claude prompt.</div>
+          </div>
+        </div>
+        <span class="tool-tag">ADVANCED</span>
+      </a>
+      <a href="daily-ingest-agent.html" class="tool-card">
+        <div class="tool-card-top">
+          <div class="tool-icon">🌙</div>
+          <div>
+            <div class="tool-name">Daily Ingest Agent</div>
+            <div class="tool-desc">Configure a browser agent that feeds your 00-Inbox with X, YouTube, and web content overnight.</div>
+          </div>
+        </div>
+        <span class="tool-tag">ADVANCED</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <h3>How to use these tools</h3>
+    <p>These tools run in any browser — no Obsidian plugin required. Fill out each form, click Generate, copy the Markdown output, and paste it into the matching file in your vault.<br><br>
+    To host this suite for your buyers: drag this entire folder into <a href="https://app.netlify.com/drop" style="color:var(--accent2)">Netlify Drop</a> and you'll have a live URL in under 60 seconds. Include that link in your Gumroad delivery email as <code>Start here → [your-url]</code>.</p>
+  </div>
+</main>
+</body>
+</html>
